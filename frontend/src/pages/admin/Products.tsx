@@ -238,11 +238,36 @@ const Products: React.FC = () => {
                 <input
                   {...register('image')}
                   type="url"
+                  placeholder="https://example.com/image.jpg"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 />
                 {errors.image && (
                   <p className="mt-1 text-sm text-red-600">{errors.image.message}</p>
                 )}
+                
+                {/* Quick Image Options */}
+                <div className="mt-2">
+                  <p className="text-xs text-gray-500 mb-2">Quick options (click to use):</p>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { name: 'iPhone', url: 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400' },
+                      { name: 'Laptop', url: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400' },
+                      { name: 'Headphones', url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400' },
+                      { name: 'Watch', url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400' },
+                      { name: 'Camera', url: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=400' },
+                      { name: 'Shoes', url: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400' }
+                    ].map((option) => (
+                      <button
+                        key={option.name}
+                        type="button"
+                        onClick={() => setValue('image', option.url)}
+                        className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border"
+                      >
+                        {option.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               <div className="flex justify-end space-x-3 pt-4">

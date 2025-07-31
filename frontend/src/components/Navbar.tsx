@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -7,6 +7,7 @@ import { ShoppingCart, User, Menu, X, Search } from 'lucide-react';
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const { user, logout, isAdmin } = useAuth();
   const { itemsCount } = useCart();
   const navigate = useNavigate();
@@ -22,10 +23,50 @@ const Navbar: React.FC = () => {
   const handleLogout = () => {
     logout();
     navigate('/');
+    setIsProfileDropdownOpen(false);
   };
 
+  // Handle profile dropdown with delay
+  const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = () => {
+    if (dropdownTimeoutRef.current) {
+      clearTimeout(dropdownTimeoutRef.current);
+      dropdownTimeoutRef.current = null;
+    }
+    setIsProfileDropdownOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    dropdownTimeoutRef.current = setTimeout(() => {
+      setIsProfileDropdownOpen(false);
+    }, 150); // 150ms delay
+  };
+
+  // Handle click outside to close dropdown
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsProfileDropdownOpen(false);
+      }
+    };
+
+    if (isProfileDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      if (dropdownTimeoutRef.current) {
+        clearTimeout(dropdownTimeoutRef.current);
+      }
+    };
+  }, [isProfileDropdownOpen]);
+
   return (
-    <nav className="bg-white shadow-lg">
+    <nav className="bg-white shadow-lg sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
@@ -74,23 +115,57 @@ const Navbar: React.FC = () => {
                   </Link>
                 )}
                 
-                <div className="relative group">
-                  <button className="flex items-center space-x-1 text-gray-700 hover:text-primary-600">
+                <div 
+                  ref={dropdownRef}
+                  className="relative"
+                  onMouseEnter={handleMouseEnter}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  <button 
+                    className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 transition-colors duration-200"
+                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                  >
                     <User className="h-6 w-6" />
                     <span>{user.firstName}</span>
+                    <svg 
+                      className={`w-4 h-4 transition-transform duration-200 ${isProfileDropdownOpen ? 'rotate-180' : ''}`}
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
                   </button>
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden group-hover:block">
+                  
+                  {/* Dropdown Menu */}
+                  <div className={`absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50 transition-all duration-200 ${
+                    isProfileDropdownOpen 
+                      ? 'opacity-100 visible transform translate-y-0' 
+                      : 'opacity-0 invisible transform -translate-y-2 pointer-events-none'
+                  }`}>
                     <Link
                       to="/profile"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+                      onClick={() => setIsProfileDropdownOpen(false)}
                     >
-                      Profile
+                      <div className="flex items-center space-x-2">
+                        <User className="h-4 w-4" />
+                        <span>Profile</span>
+                      </div>
                     </Link>
+                    
+                    <div className="border-t border-gray-100 my-1"></div>
+                    
                     <button
                       onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
                     >
-                      Logout
+                      <div className="flex items-center space-x-2">
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        <span>Logout</span>
+                      </div>
                     </button>
                   </div>
                 </div>
@@ -162,6 +237,14 @@ const Navbar: React.FC = () => {
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Orders
+                  </Link>
+                  
+                  <Link
+                    to="/profile"
+                    className="block py-2 text-gray-700 hover:text-primary-600"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Profile
                   </Link>
                   
                   {isAdmin && (

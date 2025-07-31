@@ -42,15 +42,14 @@ class ApiService {
           // Token expired or invalid
           localStorage.removeItem('auth_token');
           localStorage.removeItem('user');
-          window.location.href = '/login';
+          // Only redirect if not on login/register page
+          if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
+            window.location.href = '/login';
+          }
         }
         
-        // Return a rejected promise with the error
-        return Promise.reject({
-          message: error.response?.data?.message || error.message || 'An error occurred',
-          status: error.response?.status,
-          data: error.response?.data,
-        });
+        // Return a rejected promise with the original error structure
+        return Promise.reject(error);
       }
     );
   }

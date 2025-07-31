@@ -55,9 +55,17 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   const addToCart = async (productId: number, quantity: number = 1) => {
     try {
+      // Show immediate feedback
+      const loadingToast = toast.loading('Adding to cart...');
+      
       await cartService.addToCart(productId, quantity);
-      await fetchCart();
+      
+      // Dismiss loading and show success
+      toast.dismiss(loadingToast);
       toast.success('Added to cart');
+      
+      // Update cart in background
+      fetchCart();
     } catch (error: any) {
       const message = error.response?.data?.error || 'Failed to add to cart';
       toast.error(message);
@@ -95,9 +103,10 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
     try {
       await cartService.removeFromCart(itemId);
-      // Fetch fresh data to ensure consistency
-      await fetchCart();
       toast.success('Removed from cart');
+      
+      // Fetch fresh data in background
+      fetchCart();
     } catch (error: any) {
       // Revert optimistic update on error
       setCartItems(oldCartItems);
@@ -108,10 +117,18 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   const clearCart = async () => {
     try {
+      // Optimistic update
+      const oldCartItems = [...cartItems];
+      setCartItems([]);
+      
       await cartService.clearCart();
-      await fetchCart();
       toast.success('Cart cleared');
+      
+      // Fetch fresh data in background
+      fetchCart();
     } catch (error: any) {
+      // Revert optimistic update on error
+      setCartItems(oldCartItems);
       const message = error.response?.data?.error || 'Failed to clear cart';
       toast.error(message);
     }
@@ -119,7 +136,13 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   // Fetch cart when user changes
   useEffect(() => {
-    fetchCart();
+    if (user) {
+      fetchCart();
+    } else {
+      // Clear cart when user logs out
+      setCartItems([]);
+      setLoading(false);
+    }
   }, [user]);
 
   // Calculate derived values

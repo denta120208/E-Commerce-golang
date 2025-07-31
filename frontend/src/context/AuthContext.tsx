@@ -65,6 +65,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const login = async (email: string, password: string) => {
+    const loadingToast = toast.loading('Signing in...');
+    
     try {
       const response = await authService.login(email, password);
       console.log('AuthContext login response:', response);
@@ -75,16 +77,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('auth_token', authToken);
       localStorage.setItem('user', JSON.stringify(userData));
       
-      toast.success('Login successful!');
+      toast.dismiss(loadingToast);
+      toast.success('Welcome back!');
     } catch (error: any) {
       console.error('AuthContext login error:', error);
       const message = error.message || error.response?.data?.error || 'Login failed';
+      toast.dismiss(loadingToast);
       toast.error(message);
       throw error;
     }
   };
 
   const register = async (userData: any) => {
+    const loadingToast = toast.loading('Creating your account...');
+    
     try {
       const response = await authService.register(userData);
       console.log('AuthContext register response:', response);
@@ -94,10 +100,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setToken(authToken);
       localStorage.setItem('token', authToken);
       
-      toast.success('Registration successful!');
+      toast.dismiss(loadingToast);
+      toast.success('Account created successfully!');
     } catch (error: any) {
       console.error('AuthContext register error:', error);
       const message = error.message || error.response?.data?.error || 'Registration failed';
+      toast.dismiss(loadingToast);
       toast.error(message);
       throw error;
     }
@@ -106,9 +114,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     setUser(null);
     setToken(null);
+    
+    // Clear all localStorage data
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user');
+    localStorage.removeItem('token'); // In case there's old token key
+    
+    // Clear API service token
     authService.logout();
+    
     toast.success('Logged out successfully');
   };
 

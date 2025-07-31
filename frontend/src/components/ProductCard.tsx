@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Product } from '../types';
 import { useCart } from '../context/CartContext';
@@ -12,16 +12,22 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart } = useCart();
   const { user } = useAuth();
+  const [isAdding, setIsAdding] = useState(false);
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    if (!user) {
+    if (!user || isAdding) {
       return;
     }
 
-    await addToCart(product.id, 1);
+    try {
+      setIsAdding(true);
+      await addToCart(product.id, 1);
+    } finally {
+      setIsAdding(false);
+    }
   };
 
   const isOutOfStock = product.stock <= 0;

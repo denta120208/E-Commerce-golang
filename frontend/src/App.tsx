@@ -74,11 +74,50 @@ function App() {
           
           <Toaster
             position="top-right"
+            containerStyle={{
+              top: '80px', // Below navbar
+              right: '20px',
+              zIndex: 9999,
+            }}
             toastOptions={{
-              duration: 4000,
+              duration: 2000, // Reduced from 4000ms to 2000ms
               style: {
                 background: '#363636',
                 color: '#fff',
+                fontSize: '14px',
+                padding: '12px 16px',
+                borderRadius: '8px',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                maxWidth: '350px',
+              },
+              success: {
+                duration: 1500, // Even faster for success
+                style: {
+                  background: '#10B981',
+                  color: '#fff',
+                },
+                iconTheme: {
+                  primary: '#fff',
+                  secondary: '#10B981',
+                },
+              },
+              error: {
+                duration: 2500, // Slightly longer for errors
+                style: {
+                  background: '#EF4444',
+                  color: '#fff',
+                },
+                iconTheme: {
+                  primary: '#fff',
+                  secondary: '#EF4444',
+                },
+              },
+              loading: {
+                duration: Infinity, // Loading stays until dismissed
+                style: {
+                  background: '#3B82F6',
+                  color: '#fff',
+                },
               },
             }}
           />

@@ -40,18 +40,26 @@ const Checkout: React.FC = () => {
   const onSubmit = async (data: CheckoutFormData) => {
     try {
       setIsPlacingOrder(true);
+      
+      // Show loading toast
+      const loadingToast = toast.loading('Placing your order...');
+      
       const order = await orderService.createOrder({
         shipping_address: data.shippingAddress,
         payment_method: data.paymentMethod
       });
       
-      // Clear cart after successful order
-      await clearCart();
+      // Dismiss loading toast
+      toast.dismiss(loadingToast);
       
+      // Clear cart in background
+      clearCart();
+      
+      // Show success and navigate immediately
       toast.success('Order placed successfully!');
       navigate('/orders');
-    } catch (error: any) {
       
+    } catch (error: any) {
       // Handle different error formats
       let message = 'Failed to place order';
       

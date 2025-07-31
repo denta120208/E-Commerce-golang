@@ -19,7 +19,7 @@ type Cart struct {
 	Product Product `json:"product" gorm:"foreignKey:ProductID"`
 }
 
-type CartResponse struct {
+type CartResponse struct {     
 	ID        uint            `json:"id"`
 	UserID    uint            `json:"user_id"`
 	ProductID uint            `json:"product_id"`
