@@ -21,9 +21,18 @@ const Orders: React.FC = () => {
     try {
       setLoading(true);
       const response = await orderService.getUserOrders();
-      setOrders(response.data || []);
+      
+      // Handle backend response format: { orders: [...] }
+      if (response.orders) {
+        setOrders(response.orders);
+      } else if (response.data) {
+        setOrders(response.data);
+      } else {
+        setOrders([]);
+      }
     } catch (error) {
       console.error('Failed to fetch orders:', error);
+      setOrders([]);
     } finally {
       setLoading(false);
     }
@@ -109,7 +118,7 @@ const Orders: React.FC = () => {
       <h1 className="text-3xl font-bold text-gray-900 mb-8">Your Orders</h1>
 
       <div className="space-y-6">
-        {orders.map((order) => (
+        {orders && orders.length > 0 ? orders.map((order) => (
           <div key={order.id} className="bg-white border border-gray-200 rounded-lg shadow-sm">
             {/* Order Header */}
             <div className="px-6 py-4 border-b border-gray-200">
@@ -119,7 +128,7 @@ const Orders: React.FC = () => {
                     Order #{order.id}
                   </h2>
                   <p className="text-sm text-gray-600">
-                    Placed on {formatDate(order.createdAt)}
+                    Placed on {formatDate(order.created_at || order.createdAt || '')}
                   </p>
                 </div>
                 <div className="flex flex-col sm:items-end">
@@ -127,7 +136,7 @@ const Orders: React.FC = () => {
                     {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                   </span>
                   <p className="text-lg font-semibold text-gray-900 mt-2">
-                    ${order.totalAmount.toFixed(2)}
+                    ${(order.total_amount || order.totalAmount || 0).toFixed(2)}
                   </p>
                 </div>
               </div>
@@ -136,15 +145,15 @@ const Orders: React.FC = () => {
             {/* Order Items */}
             <div className="px-6 py-4">
               <div className="space-y-3">
-                {order.orderItems.map((item) => (
+                {(order.order_items || order.orderItems || []).map((item) => (
                   <div key={item.id} className="flex items-center space-x-4">
                     <div className="flex-shrink-0 w-16 h-16">
                       <img
-                        src={item.product?.image || '/placeholder-product.jpg'}
+                        src={item.product?.image || '/placeholder-product.svg'}
                         alt={item.product?.name || 'Product'}
                         className="w-full h-full object-cover rounded-lg"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/placeholder-product.jpg';
+                          (e.target as HTMLImageElement).src = '/placeholder-product.svg';
                         }}
                       />
                     </div>
@@ -153,11 +162,11 @@ const Orders: React.FC = () => {
                         {item.product?.name || 'Unknown Product'}
                       </h3>
                       <p className="text-sm text-gray-500">
-                        Qty: {item.quantity} × ${item.price.toFixed(2)}
+                        Qty: {item.quantity} × ${(item.price || 0).toFixed(2)}
                       </p>
                     </div>
                     <div className="text-sm font-medium text-gray-900">
-                      ${item.subtotal.toFixed(2)}
+                      ${((item.price || 0) * item.quantity).toFixed(2)}
                     </div>
                   </div>
                 ))}
@@ -169,18 +178,32 @@ const Orders: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="font-medium text-gray-900">Shipping Address:</p>
-                  <p className="text-gray-600 mt-1">{order.shippingAddress}</p>
+                  <p className="text-gray-600 mt-1">{order.shipping_address || order.shippingAddress}</p>
                 </div>
                 <div>
                   <p className="font-medium text-gray-900">Payment Method:</p>
                   <p className="text-gray-600 mt-1 capitalize">
-                    {order.paymentMethod.replace('_', ' ')}
+                    {(order.payment_method || order.paymentMethod || '').replace('_', ' ')}
                   </p>
                 </div>
               </div>
             </div>
           </div>
-        ))}
+        )) : (
+          <div className="text-center py-12">
+            <ShoppingBagIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">No Orders Yet</h2>
+            <p className="text-gray-600 mb-6">
+              You haven't placed any orders yet. Start shopping to see your orders here.
+            </p>
+            <Link
+              to="/"
+              className="inline-block bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Start Shopping
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

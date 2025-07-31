@@ -53,18 +53,21 @@ const onSubmit = async (data: RegisterFormData) => {
       first_name: firstName,
       last_name: lastName
     };
+    
+    console.log('Submitting registration data:', registerData);
     const response = await authService.register(registerData);
+    console.log('Registration response:', response);
 
-    if (response && response.data) {
-      login(response.data.user, response.data.token);
-      toast.success('Registrasi berhasil! Selamat datang 👋');
-      navigate('/');
+    if (response && response.user && response.token) {
+      toast.success('Registrasi berhasil! Silakan login dengan akun Anda.');
+      navigate('/login'); // Redirect to login page as requested
     } else {
       toast.error('Registrasi gagal. Silakan coba lagi.');
     }
   } catch (error: any) {
-    const message = error.response?.data?.error || 'Registrasi gagal';
-    if (error.response?.status === 409) {
+    console.error('Registration error:', error);
+    const message = error.message || error.response?.data?.error || 'Registrasi gagal';
+    if (error.message && error.message.includes('already exists')) {
       toast.error('Email sudah terdaftar. Silakan gunakan email lain atau login.');
     } else {
       toast.error(message);

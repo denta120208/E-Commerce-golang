@@ -1,0 +1,9 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="200" fill="none"/>
+  <circle cx="100" cy="100" r="80" stroke="#E5E7EB" stroke-width="2" fill="none"/>
+  <path d="M70 85L85 70L115 70L130 85L130 115L115 130L85 130L70 115L70 85Z" stroke="#9CA3AF" stroke-width="2" fill="none"/>
+  <circle cx="85" cy="90" r="3" fill="#9CA3AF"/>
+  <circle cx="115" cy="90" r="3" fill="#9CA3AF"/>
+  <path d="M85 110Q100 120 115 110" stroke="#9CA3AF" stroke-width="2" fill="none"/>
+  <text x="100" y="170" text-anchor="middle" fill="#6B7280" font-family="Arial, sans-serif" font-size="12">No products found</text>
+</svg>

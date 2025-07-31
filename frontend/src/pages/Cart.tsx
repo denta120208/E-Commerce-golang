@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useCart } from '../hooks/useCart';
+import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import CartItem from '../components/CartItem';
 import LoadingSpinner from '../components/LoadingSpinner';

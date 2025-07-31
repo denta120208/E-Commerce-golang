@@ -10,53 +10,68 @@ export interface User {
 }
 
 export interface Category {
-  id: string;
+  id: number;
   name: string;
   description?: string;
   image?: string;
-  createdAt: string;
+  created_at: string;
+  createdAt?: string; // For backward compatibility
 }
 
 export interface Product {
-  id: string;
+  id: number;
   name: string;
   description: string;
   price: number;
   stock: number;
   image?: string;
-  categoryId: string;
+  category_id: number;
+  categoryId?: number; // For backward compatibility
   category?: Category;
-  createdAt: string;
+  created_at: string;
+  createdAt?: string; // For backward compatibility
 }
 
 export interface CartItem {
-  id: string;
-  userId: string;
-  productId: string;
+  id: number;
+  user_id: number;
+  product_id: number;
   quantity: number;
   product?: Product;
-  createdAt: string;
+  created_at: string;
   subtotal: number;
 }
 
 export interface OrderItem {
-  id: string;
-  productId: string;
+  id: number;
+  order_id: number;
+  product_id: number;
   quantity: number;
   price: number;
   product?: Product;
-  subtotal: number;
+  
+  // Backward compatibility
+  productId?: number;
+  subtotal?: number;
 }
 
 export interface Order {
-  id: string;
-  userId: string;
-  totalAmount: number;
+  id: number;
+  user_id: number;
+  total_amount: number;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  shippingAddress: string;
-  paymentMethod: string;
-  createdAt: string;
-  orderItems: OrderItem[];
+  shipping_address: string;
+  payment_method: string;
+  created_at: string;
+  order_items: OrderItem[];
+  
+  // Backward compatibility
+  userId?: number;
+  totalAmount?: number;
+  shippingAddress?: string;
+  paymentMethod?: string;
+  createdAt?: string;
+  orderItems?: OrderItem[];
 }
 
 export interface ApiResponse<T> {

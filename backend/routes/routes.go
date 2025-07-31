@@ -3,6 +3,7 @@ package routes
 import (
 	"ecommerce-backend/controllers"
 	"ecommerce-backend/middlewares"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -12,7 +13,7 @@ func SetupRoutes() *gin.Engine {
 
 	// CORS middleware
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000", "http://localhost:5173"}
+	config.AllowOrigins = []string{"http://localhost:3000", "http://localhost:3001", "http://localhost:5173"}
 	config.AllowCredentials = true
 	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 	r.Use(cors.New(config))
@@ -37,7 +38,7 @@ func SetupRoutes() *gin.Engine {
 	{
 		categories.GET("", controllers.GetCategories)
 		categories.GET("/:id", controllers.GetCategory)
-		
+
 		// Admin only routes
 		adminCategories := categories.Use(middlewares.AuthMiddleware(), middlewares.AdminMiddleware())
 		{
@@ -52,7 +53,7 @@ func SetupRoutes() *gin.Engine {
 	{
 		products.GET("", controllers.GetProducts)
 		products.GET("/:id", controllers.GetProduct)
-		
+
 		// Admin only routes
 		adminProducts := products.Use(middlewares.AuthMiddleware(), middlewares.AdminMiddleware())
 		{
@@ -78,7 +79,7 @@ func SetupRoutes() *gin.Engine {
 		orders.GET("", controllers.GetOrders)
 		orders.GET("/:id", controllers.GetOrder)
 		orders.POST("", controllers.CreateOrder)
-		
+
 		// Admin only routes
 		adminOrders := orders.Use(middlewares.AdminMiddleware())
 		{

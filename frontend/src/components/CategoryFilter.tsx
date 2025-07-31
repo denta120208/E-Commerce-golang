@@ -3,7 +3,7 @@ import { Category } from '../types';
 
 interface CategoryFilterProps {
   categories: Category[];
-  selectedCategories: string[];
+  selectedCategories: number[];
   onCategoryChange: (categoryId: string, checked: boolean) => void;
   loading?: boolean;
 }
@@ -18,12 +18,12 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
     if (selectedCategories.length === 0) {
       // Select all categories
       categories.forEach(category => {
-        onCategoryChange(category.id, true);
+        onCategoryChange(category.id.toString(), true);
       });
     } else {
       // Deselect all categories
       selectedCategories.forEach(categoryId => {
-        onCategoryChange(categoryId, false);
+        onCategoryChange(categoryId.toString(), false);
       });
     }
   };
@@ -69,7 +69,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
               type="checkbox"
               id={`category-${category.id}`}
               checked={selectedCategories.includes(category.id)}
-              onChange={(e) => onCategoryChange(category.id, e.target.checked)}
+              onChange={(e) => onCategoryChange(category.id.toString(), e.target.checked)}
               className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
             />
             <label

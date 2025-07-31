@@ -34,10 +34,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    if (storedToken) {
-      setToken(storedToken);
-      fetchUserProfile(storedToken);
+    const storedToken = localStorage.getItem('auth_token');
+    const storedUser = localStorage.getItem('user');
+    
+    if (storedToken && storedUser) {
+      try {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+        setLoading(false);
+      } catch (error) {
+        console.error('Error parsing stored user:', error);
+        logout();
+      }
     } else {
       setLoading(false);
     }
@@ -46,7 +54,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const fetchUserProfile = async (authToken: string) => {
     try {
       const response = await authService.getProfile();
-      setUser(response.data.user);
+      console.log('Fetch profile response:', response);
+      setUser(response);
     } catch (error) {
       console.error('Failed to fetch user profile:', error);
       logout();
@@ -58,15 +67,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string) => {
     try {
       const response = await authService.login(email, password);
-      const { user: userData, token: authToken } = response.data;
+      console.log('AuthContext login response:', response);
+      const { user: userData, token: authToken } = response;
       
       setUser(userData);
       setToken(authToken);
-      localStorage.setItem('token', authToken);
+      localStorage.setItem('auth_token', authToken);
+      localStorage.setItem('user', JSON.stringify(userData));
       
       toast.success('Login successful!');
     } catch (error: any) {
-      const message = error.response?.data?.error || 'Login failed';
+      console.error('AuthContext login error:', error);
+      const message = error.message || error.response?.data?.error || 'Login failed';
       toast.error(message);
       throw error;
     }
@@ -75,7 +87,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (userData: any) => {
     try {
       const response = await authService.register(userData);
-      const { user: newUser, token: authToken } = response.data;
+      console.log('AuthContext register response:', response);
+      const { user: newUser, token: authToken } = response;
       
       setUser(newUser);
       setToken(authToken);
@@ -83,7 +96,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       toast.success('Registration successful!');
     } catch (error: any) {
-      const message = error.response?.data?.error || 'Registration failed';
+      console.error('AuthContext register error:', error);
+      const message = error.message || error.response?.data?.error || 'Registration failed';
       toast.error(message);
       throw error;
     }
@@ -92,7 +106,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem('token');
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user');
     authService.logout();
     toast.success('Logged out successfully');
   };

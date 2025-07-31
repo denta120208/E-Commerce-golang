@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Product } from '../types';
 import { productService } from '../services/productService';
-import { useCart } from '../hooks/useCart';
+import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { ArrowLeftIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';

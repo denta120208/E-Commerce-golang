@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CartItem as CartItemType } from '../types';
-import { useCart } from '../hooks/useCart';
+import { useCart } from '../context/CartContext';
 import { TrashIcon, MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 
 interface CartItemProps {
@@ -16,14 +16,16 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
     
     setIsUpdating(true);
     try {
-      await updateCartItem(parseInt(item.id), newQuantity);
+      await updateCartItem(item.id, newQuantity);
+    } catch (error) {
+      console.error('Error updating cart item:', error);
     } finally {
       setIsUpdating(false);
     }
   };
 
   const handleRemove = async () => {
-    await removeFromCart(parseInt(item.id));
+    await removeFromCart(item.id);
   };
 
   const product = item.product;
@@ -34,11 +36,11 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
       {/* Product Image */}
       <div className="flex-shrink-0 w-20 h-20 mr-4">
         <img
-          src={product?.image || '/placeholder-product.jpg'}
+          src={product?.image || '/placeholder-product.svg'}
           alt={product?.name || 'Product'}
           className="w-full h-full object-cover rounded-lg"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = '/placeholder-product.jpg';
+            (e.target as HTMLImageElement).src = '/placeholder-product.svg';
           }}
         />
       </div>
@@ -61,19 +63,19 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
         <button
           onClick={() => handleQuantityChange(item.quantity - 1)}
           disabled={isUpdating || item.quantity <= 1}
-          className="p-1 rounded-full border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="p-1 rounded-full border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
           <MinusIcon className="w-4 h-4" />
         </button>
         
-        <span className="w-12 text-center font-medium">
+        <span className={`w-12 text-center font-medium transition-opacity ${isUpdating ? 'opacity-50' : ''}`}>
           {item.quantity}
         </span>
         
         <button
           onClick={() => handleQuantityChange(item.quantity + 1)}
           disabled={isUpdating || item.quantity >= maxQuantity}
-          className="p-1 rounded-full border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="p-1 rounded-full border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
           <PlusIcon className="w-4 h-4" />
         </button>

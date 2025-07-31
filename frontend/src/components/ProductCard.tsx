@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Product } from '../types';
-import { useCart } from '../hooks/useCart';
+import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { ShoppingCartIcon } from '@heroicons/react/24/outline';
 
@@ -21,7 +21,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       return;
     }
 
-    await addToCart(parseInt(product.id), 1);
+    await addToCart(product.id, 1);
   };
 
   const isOutOfStock = product.stock <= 0;
@@ -31,11 +31,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       <Link to={`/product/${product.id}`}>
         <div className="aspect-w-16 aspect-h-12 relative">
           <img
-            src={product.image || '/placeholder-product.jpg'}
+            src={product.image || '/placeholder-product.svg'}
             alt={product.name}
             className="w-full h-48 object-cover"
             onError={(e) => {
-              (e.target as HTMLImageElement).src = '/placeholder-product.jpg';
+              (e.target as HTMLImageElement).src = '/placeholder-product.svg';
             }}
           />
           {isOutOfStock && (

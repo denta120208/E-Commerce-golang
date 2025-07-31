@@ -14,22 +14,43 @@ class ProductService {
     search?: string;
     categoryIds?: string;
   }): Promise<{ products: Product[]; total: number; page: number; limit: number; total_pages: number }> {
-    const { page = 1, limit = 10, category, search, categoryIds } = options || {};
-    const params = new URLSearchParams({
-      page: page.toString(),
-      limit: limit.toString(),
-    });
-    if (category) params.append('category', category);
-    if (search) params.append('search', search);
-    if (categoryIds) params.append('categoryIds', categoryIds);
-    const response: import('axios').AxiosResponse<any> = await apiService.get(`/products?${params.toString()}`);
-    return {
-      products: response.data?.products || [],
-      total: response.data?.total || 0,
-      page: response.data?.page || 1,
-      limit: response.data?.limit || 10,
-      total_pages: response.data?.total_pages || 1,
-    };
+    try {
+      const { page = 1, limit = 10, category, search, categoryIds } = options || {};
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+      });
+      if (category) params.append('category_id', category);
+      if (search) params.append('search', search);
+      if (categoryIds) params.append('category_id', categoryIds);
+      
+      console.log('API call URL:', `/products?${params.toString()}`);
+      const response = await apiService.get(`/products?${params.toString()}`);
+      console.log('Raw API response:', response);
+      
+      // Handle response structure - backend returns direct object
+      let products: Product[] = [];
+      let total = 0;
+      let totalPages = 1;
+      
+      if (response) {
+        // Backend returns direct object with products array
+        products = response.products || [];
+        total = response.total || 0;
+        totalPages = response.total_pages || 1;
+      }
+      
+      return {
+        products,
+        total,
+        page: page,
+        limit: limit,
+        total_pages: totalPages,
+      };
+    } catch (error) {
+      console.error('Error in getProducts:', error);
+      throw error;
+    }
   }
 
   async getProduct(id: string | number): Promise<ApiResponse<Product>> {

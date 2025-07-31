@@ -9,6 +9,12 @@ export const useCart = () => {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
+  // Debug: Log cart items changes
+  useEffect(() => {
+    console.log('Cart items state changed:', cartItems);
+    console.log('Cart items count:', cartItems.length);
+  }, [cartItems]);
+
   const fetchCart = async () => {
     if (!user) {
       setCartItems([]);
@@ -18,10 +24,16 @@ export const useCart = () => {
     try {
       setLoading(true);
       const response = await cartService.getCart();
-      setCartItems(response.data.items || []);
+      console.log('useCart fetchCart response:', response);
+      console.log('Setting cart items:', response.cart_items);
+      setCartItems(response.cart_items || []);
+      console.log('Cart items set, length:', response.cart_items?.length || 0);
     } catch (error) {
       console.error('Failed to fetch cart:', error);
-      toast.error('Failed to load cart');
+      // Don't show error toast if user is not authenticated
+      if (user) {
+        toast.error('Failed to load cart');
+      }
     } finally {
       setLoading(false);
     }
@@ -39,22 +51,42 @@ export const useCart = () => {
   };
 
   const updateCartItem = async (itemId: number, quantity: number) => {
+    // Optimistic update
+    const oldCartItems = [...cartItems];
+    const updatedItems = cartItems.map(item => 
+      item.id === itemId 
+        ? { ...item, quantity, subtotal: (item.product?.price || 0) * quantity }
+        : item
+    );
+    setCartItems(updatedItems);
+
     try {
       await cartService.updateCartItem(itemId, quantity);
+      // Fetch fresh data to ensure consistency
       await fetchCart();
-      toast.success('Cart updated');
+      // Don't show toast for every update to avoid spam
     } catch (error: any) {
+      // Revert optimistic update on error
+      setCartItems(oldCartItems);
       const message = error.response?.data?.error || 'Failed to update cart';
       toast.error(message);
     }
   };
 
   const removeFromCart = async (itemId: number) => {
+    // Optimistic update
+    const oldCartItems = [...cartItems];
+    const updatedItems = cartItems.filter(item => item.id !== itemId);
+    setCartItems(updatedItems);
+
     try {
       await cartService.removeFromCart(itemId);
+      // Fetch fresh data to ensure consistency
       await fetchCart();
       toast.success('Removed from cart');
     } catch (error: any) {
+      // Revert optimistic update on error
+      setCartItems(oldCartItems);
       const message = error.response?.data?.error || 'Failed to remove from cart';
       toast.error(message);
     }

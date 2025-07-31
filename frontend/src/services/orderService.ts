@@ -27,13 +27,24 @@ class OrderService {
   }
 
   async createOrder(orderData: OrderRequest): Promise<Order> {
-    const response = await apiService.post<ApiResponse<Order>>('/orders', orderData);
-    
-    if (response.success && response.data) {
-      return response.data;
+    try {
+      const response = await apiService.post<any>('/orders', orderData);
+      
+      // Handle backend response format: { message: "...", order: {...} }
+      if (response.order) {
+        return response.order;
+      }
+      
+      // Handle standard API response format: { success: true, data: {...} }
+      if (response.success && response.data) {
+        return response.data;
+      }
+      
+      throw new Error(response.message || 'Failed to create order');
+    } catch (error: any) {
+      console.error('Create order error:', error);
+      throw error;
     }
-    
-    throw new Error(response.message || 'Failed to create order');
   }
 
   async updateOrderStatus(id: string | number, status: Order['status']): Promise<Order> {
@@ -66,13 +77,19 @@ class OrderService {
     return this.updateOrderStatus(id, 'cancelled');
   }
 
-  async getUserOrders(page: number = 1, limit: number = 10): Promise<PaginatedResponse<Order[]>> {
+  async getUserOrders(page: number = 1, limit: number = 10): Promise<any> {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
     });
     
-    return apiService.get<PaginatedResponse<Order[]>>(`/orders?${params.toString()}`);
+    try {
+      const response = await apiService.get<any>(`/orders?${params.toString()}`);
+      return response;
+    } catch (error) {
+      console.error('getUserOrders error:', error);
+      throw error;
+    }
   }
 
   async getUserOrderHistory(userId: string, page: number = 1, limit: number = 10): Promise<PaginatedResponse<Order[]>> {

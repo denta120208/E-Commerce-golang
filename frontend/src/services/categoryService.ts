@@ -7,13 +7,16 @@ import {
 
 class CategoryService {
   async getCategories(): Promise<Category[]> {
-    const response = await apiService.get<ApiResponse<Category[]>>('/categories');
-    
-    if (response.success && response.data) {
-      return response.data;
+    try {
+      const response = await apiService.get('/categories');
+      console.log('Categories API response:', response);
+      
+      // Backend returns { categories: [...] }
+      return response.categories || [];
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      throw error;
     }
-    
-    throw new Error(response.message || 'Failed to get categories');
   }
 
   async getCategory(id: string): Promise<Category> {

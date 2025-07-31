@@ -11,26 +11,39 @@ import {
 
 class AuthService {
   async login(email: string, password: string): Promise<AuthResponse> {
-    const loginData: LoginRequest = { email, password };
-    const response: AxiosResponse<any> = await apiService.post('/auth/login', loginData);
-    if (response.data && response.data.user && response.data.token) {
-      const { user, token } = response.data;
-      apiService.setAuthToken(token);
-      localStorage.setItem('user', JSON.stringify(user));
-      return { user, token };
+    try {
+      const loginData: LoginRequest = { email, password };
+      const response = await apiService.post('/auth/login', loginData);
+      console.log('Login response:', response);
+      
+      if (response && response.user && response.token) {
+        const { user, token } = response;
+        apiService.setAuthToken(token);
+        localStorage.setItem('user', JSON.stringify(user));
+        return { user, token };
+      }
+      throw new Error(response?.message || 'Login failed');
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
     }
-    throw new Error(response.data?.message || 'Login failed');
   }
 
   async register(userData: RegisterRequest): Promise<AuthResponse> {
-    const response: AxiosResponse<any> = await apiService.post('/auth/register', userData);
-    if (response.data && response.data.user && response.data.token) {
-      const { user, token } = response.data;
-      apiService.setAuthToken(token);
-      localStorage.setItem('user', JSON.stringify(user));
-      return { user, token };
+    try {
+      const response = await apiService.post('/auth/register', userData);
+      console.log('Register response:', response);
+      
+      if (response && response.user && response.token) {
+        const { user, token } = response;
+        // Don't auto-login after registration, let user login manually
+        return { user, token };
+      }
+      throw new Error(response?.message || 'Registration failed');
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
     }
-    throw new Error(response.data?.message || 'Registration failed');
   }
 
   async logout(): Promise<void> {

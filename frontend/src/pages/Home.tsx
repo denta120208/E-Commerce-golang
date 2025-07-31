@@ -11,14 +11,12 @@ const Home: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [productsLoading, setProductsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   
   const searchQuery = searchParams.get('search') || '';
-  const itemsPerPage = 12;
 
   useEffect(() => {
     fetchCategories();
@@ -27,6 +25,75 @@ const Home: React.FC = () => {
   useEffect(() => {
     fetchProducts();
   }, [currentPage, selectedCategories, searchQuery]);
+
+  const fetchCategories = async () => {
+    try {
+      console.log('Fetching categories...');
+      const response = await categoryService.getCategories();
+      console.log('Categories response:', response);
+      setCategories(response || []);
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      setProductsLoading(true);
+      
+      // Prepare parameters for API call
+      const params: {
+        page?: number;
+        limit?: number;
+        category?: string;
+        search?: string;
+        categoryIds?: string;
+      } = {
+        page: currentPage,
+        limit: 12, // Show more products per page
+      };
+      
+      // Add search query if exists
+      if (searchQuery) {
+        params.search = searchQuery;
+      }
+      
+      // Add selected categories if exists
+      if (selectedCategories.length > 0) {
+        params.categoryIds = selectedCategories.join(',');
+      }
+      
+      console.log('Fetching products with params:', params);
+      const response = await productService.getProducts(params);
+      console.log('Products response:', response);
+      
+      setProducts(response.products || []);
+      setTotalPages(response.total_pages || 1);
+    } catch (error) {
+      console.error('Failed to fetch products:', error);
+      setProducts([]);
+    } finally {
+      setProductsLoading(false);
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchParams({});
+  };
+
+  const handleCategoryChange = (categoryId: string, checked: boolean) => {
+    const numCategoryId = parseInt(categoryId);
+    if (checked) {
+      setSelectedCategories([numCategoryId]);
+    } else {
+      setSelectedCategories([]);
+    }
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -126,80 +193,6 @@ const Home: React.FC = () => {
                   : 'No products available'}
               </div>
               <img src="/empty-state.svg" alt="No products" className="mx-auto w-48 opacity-60" />
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-        {/* Main Content */}
-        <div className="lg:w-3/4">
-          {/* Products Grid */}
-          {productsLoading ? (
-            <div className="flex justify-center items-center min-h-64">
-              <LoadingSpinner size="lg" />
-            </div>
-          ) : products.length > 0 ? (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                {products.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex justify-center items-center space-x-2">
-                  <button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-                  
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`px-4 py-2 border rounded-lg ${
-                        currentPage === page
-                          ? 'bg-blue-600 text-white border-blue-600'
-                          : 'border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                  
-                  <button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="text-center py-12">
-              <div className="text-gray-500 text-lg mb-4">
-                {searchQuery || selectedCategories.length > 0
-                  ? 'No products found matching your criteria'
-                  : 'No products available'}
-              </div>
-              {(searchQuery || selectedCategories.length > 0) && (
-                <button
-                  onClick={() => {
-                    clearSearch();
-                    setSelectedCategories([]);
-                  }}
-                  className="text-blue-600 hover:text-blue-800"
-                >
-                  Clear all filters
-                </button>
-              )}
             </div>
           )}
         </div>

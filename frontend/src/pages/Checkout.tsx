@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { useCart } from '../hooks/useCart';
+import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { orderService } from '../services/orderService';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -40,12 +40,27 @@ const Checkout: React.FC = () => {
   const onSubmit = async (data: CheckoutFormData) => {
     try {
       setIsPlacingOrder(true);
-      await orderService.createOrder(data);
+      const order = await orderService.createOrder({
+        shipping_address: data.shippingAddress,
+        payment_method: data.paymentMethod
+      });
+      
+      // Clear cart after successful order
       await clearCart();
+      
       toast.success('Order placed successfully!');
       navigate('/orders');
     } catch (error: any) {
-      const message = error.response?.data?.error || 'Failed to place order';
+      
+      // Handle different error formats
+      let message = 'Failed to place order';
+      
+      if (error.response?.data?.error) {
+        message = error.response.data.error;
+      } else if (error.message) {
+        message = error.message;
+      }
+      
       toast.error(message);
     } finally {
       setIsPlacingOrder(false);

@@ -6,58 +6,82 @@ import {
 } from '../types';
 
 class CartService {
-  async getCart(): Promise<ApiResponse<{ items: CartItem[] }>> {
-    const response = await apiService.get<ApiResponse<{ items: CartItem[] }>>('/cart');
-    return response;
+  async getCart(): Promise<{ cart_items: CartItem[], total_amount: number, total_items: number }> {
+    try {
+      const response = await apiService.get('/cart');
+      console.log('Cart API response:', response);
+      return response;
+    } catch (error) {
+      console.error('Error fetching cart:', error);
+      throw error;
+    }
   }
 
   async addToCart(productId: string | number, quantity: number): Promise<CartItem> {
-    const cartData: CartItemRequest = { productId: productId.toString(), quantity };
-    const response = await apiService.post<ApiResponse<CartItem>>('/cart', cartData);
-    
-    if (response.success && response.data) {
-      return response.data;
+    try {
+      const cartData = { 
+        product_id: typeof productId === 'string' ? parseInt(productId) : productId, 
+        quantity 
+      };
+      console.log('Adding to cart:', cartData);
+      const response = await apiService.post('/cart/add', cartData);
+      console.log('Add to cart response:', response);
+      return response.cart_item;
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      throw error;
     }
-    
-    throw new Error(response.message || 'Failed to add item to cart');
   }
 
   async updateCartItem(itemId: string | number, quantity: number): Promise<CartItem> {
-    const response = await apiService.put<ApiResponse<CartItem>>(`/cart/${itemId}`, { quantity });
-    
-    if (response.success && response.data) {
-      return response.data;
+    try {
+      const response = await apiService.put(`/cart/item/${itemId}`, { quantity });
+      console.log('Update cart item response:', response);
+      return response.cart_item;
+    } catch (error) {
+      console.error('Error updating cart item:', error);
+      throw error;
     }
-    
-    throw new Error(response.message || 'Failed to update cart item');
   }
 
   async removeFromCart(itemId: string | number): Promise<void> {
-    const response = await apiService.delete<ApiResponse<null>>(`/cart/${itemId}`);
-    
-    if (!response.success) {
-      throw new Error(response.message || 'Failed to remove item from cart');
+    try {
+      const response = await apiService.delete(`/cart/item/${itemId}`);
+      console.log('Remove from cart response:', response);
+    } catch (error) {
+      console.error('Error removing from cart:', error);
+      throw error;
     }
   }
 
   async clearCart(): Promise<void> {
-    const response = await apiService.delete<ApiResponse<null>>('/cart');
-    
-    if (!response.success) {
-      throw new Error(response.message || 'Failed to clear cart');
+    try {
+      const response = await apiService.delete('/cart/clear');
+      console.log('Clear cart response:', response);
+    } catch (error) {
+      console.error('Error clearing cart:', error);
+      throw error;
     }
   }
 
   async getCartTotal(): Promise<number> {
-    const response = await this.getCart();
-    const cartItems = response.data?.items || [];
-    return cartItems.reduce((total, item) => total + item.subtotal, 0);
+    try {
+      const response = await this.getCart();
+      return response.total_amount || 0;
+    } catch (error) {
+      console.error('Error getting cart total:', error);
+      return 0;
+    }
   }
 
   async getCartItemCount(): Promise<number> {
-    const response = await this.getCart();
-    const cartItems = response.data?.items || [];
-    return cartItems.reduce((count, item) => count + item.quantity, 0);
+    try {
+      const response = await this.getCart();
+      return response.total_items || 0;
+    } catch (error) {
+      console.error('Error getting cart item count:', error);
+      return 0;
+    }
   }
 
   // Local storage methods for offline cart (optional)
